@@ -62,6 +62,7 @@ There are no Python tests in this repo either; CI only does a `py_compile` synta
 with `plugin_commands/` and `plugin_responses/` subdirectories.
 
 Flow for a tool call (e.g. `add_time_spent`):
+
 1. An `SuperProductivityMCPServer` method builds a command dict and calls `send_command()` (`mcp_server.py:293`), which writes `plugin_commands/{action}_{timestamp}_{uuid}.json` and then polls for a matching `plugin_responses/{id}_response.json` for up to 30s.
 2. `plugin.js`'s `startCommandProcessing()` polls `plugin_commands/` on an interval (`commandCheckIntervalMs`, default 2000ms, user-adjustable from the dashboard, persisted via `PluginAPI.persistDataSynced`) and hands new files to `executeCommand()`.
 3. `executeCommand()` is one large `switch (command.action)` dispatching to the SP `PluginAPI` (`getTasks`, `updateTask`, `addTask`, `addProject`, `addTag`, `executeNodeScript`, ...). Add a new command there when adding a new bridge action, not directly in `mcp_server.py`.
