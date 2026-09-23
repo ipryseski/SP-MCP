@@ -46,7 +46,7 @@ mkdir -p "$MCP_DIR/plugin_responses"
 # Copy MCP server to data directory
 echo "Copying MCP server..."
 cp mcp_server.py "$MCP_DIR/mcp_server.py"
-cp merge_config_unix.py "$MCP_DIR/merge_config_unix.py"
+cp merge_config.py "$MCP_DIR/merge_config.py"
 chmod +x "$MCP_DIR/mcp_server.py"
 
 # Create start script
@@ -74,7 +74,7 @@ if [ -f "$CLAUDE_CONFIG" ]; then
     echo "Adding super-productivity to existing MCP servers..."
     echo "Merging with existing Claude Desktop configuration..."
     
-    python3 "$MCP_DIR/merge_config_unix.py" "$CLAUDE_CONFIG" "$MCP_DIR"
+    python3 "$MCP_DIR/merge_config.py" "$CLAUDE_CONFIG" "$MCP_DIR"
     
     if [ $? -ne 0 ]; then
         echo "ERROR: Failed to merge configuration. Your backup is at $CLAUDE_CONFIG.backup"

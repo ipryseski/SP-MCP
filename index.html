@@ -451,7 +451,13 @@
 
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry log-${type}`;
-        logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+
+        const timestampSpan = document.createElement('span');
+        timestampSpan.className = 'log-timestamp';
+        timestampSpan.textContent = `[${timestamp}]`;
+
+        logEntry.appendChild(timestampSpan);
+        logEntry.appendChild(document.createTextNode(` ${message}`));
 
         logsContainer.appendChild(logEntry);
         logsContainer.scrollTop = logsContainer.scrollHeight;

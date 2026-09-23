@@ -7,6 +7,8 @@ import logging
 import os
 import re
 import sys
+import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -292,10 +294,13 @@ class SuperProductivityMCPServer:
     
     async def send_command(self, action: str, **kwargs) -> Dict[str, Any]:
         """Send a command to Super Productivity plugin"""
+        # A uuid suffix (rather than just a timestamp) keeps ids unique even
+        # when two commands are issued in the same tick, so responses can't
+        # get cross-matched to the wrong request.
         command = {
             "action": action,
-            "id": f"{action}_{asyncio.get_event_loop().time()}",
-            "timestamp": asyncio.get_event_loop().time(),
+            "id": f"{action}_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}",
+            "timestamp": time.time() * 1000,
             **kwargs
         }
         
@@ -390,7 +395,7 @@ class SuperProductivityMCPServer:
         if "is_done" in args:
             updates["isDone"] = args["is_done"]
             if args["is_done"]:
-                updates["doneOn"] = asyncio.get_event_loop().time() * 1000
+                updates["doneOn"] = time.time() * 1000
             else:
                 updates["doneOn"] = None
         if "time_estimate" in args:

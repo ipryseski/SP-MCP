@@ -454,6 +454,20 @@ class MCPBridgePlugin {
     }
   }
 
+  // Shared by the command handlers below that need to read-modify-write a
+  // single task (addTimeSpent, addTagToTask, removeTagFromTask). Throws
+  // instead of returning an error object so a missing task correctly
+  // surfaces as `success: false` in the command response, rather than being
+  // silently wrapped as a successful result.
+  async findTaskById(taskId) {
+    const tasks = await PluginAPI.getTasks();
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new Error(`Task not found: ${taskId}`);
+    }
+    return task;
+  }
+
   async executeCommand(commandInfo) {
     const { command, filename, path: commandPath } = commandInfo;
 
@@ -551,17 +565,12 @@ class MCPBridgePlugin {
 
         case 'addTimeToTask':
         case 'addTimeSpent': {
-          // Get current task to add time to existing timeSpent
-          const tasks = await PluginAPI.getTasks();
-          const task = tasks.find((t) => t.id === command.taskId);
-          if (task) {
-            const newTimeSpent = (task.timeSpent || 0) + (command.timeMs || 0);
-            result = await PluginAPI.updateTask(command.taskId, {
-              timeSpent: newTimeSpent,
-            });
-          } else {
-            result = { error: 'Task not found' };
-          }
+          // Add time to the task's existing timeSpent (additive).
+          const task = await this.findTaskById(command.taskId);
+          const newTimeSpent = (task.timeSpent || 0) + (command.timeMs || 0);
+          result = await PluginAPI.updateTask(command.taskId, {
+            timeSpent: newTimeSpent,
+          });
           break;
         }
 
@@ -578,39 +587,27 @@ class MCPBridgePlugin {
           break;
 
         case 'addTagToTask': {
-          // Get current task to add tag to existing tagIds
-          const tasksForTag = await PluginAPI.getTasks();
-          const taskForTag = tasksForTag.find((t) => t.id === command.taskId);
-          if (taskForTag) {
-            const newTagIds = [...taskForTag.tagIds];
-            if (!newTagIds.includes(command.tagId)) {
-              newTagIds.push(command.tagId);
-            }
-            result = await PluginAPI.updateTask(command.taskId, {
-              tagIds: newTagIds,
-            });
-          } else {
-            result = { error: 'Task not found' };
+          // Add tag to the task's existing tagIds.
+          const taskForTag = await this.findTaskById(command.taskId);
+          const newTagIds = [...taskForTag.tagIds];
+          if (!newTagIds.includes(command.tagId)) {
+            newTagIds.push(command.tagId);
           }
+          result = await PluginAPI.updateTask(command.taskId, {
+            tagIds: newTagIds,
+          });
           break;
         }
 
         case 'removeTagFromTask': {
-          // Get current task to remove tag from existing tagIds
-          const tasksForTagRemoval = await PluginAPI.getTasks();
-          const taskForTagRemoval = tasksForTagRemoval.find(
-            (t) => t.id === command.taskId
+          // Remove tag from the task's existing tagIds.
+          const taskForTagRemoval = await this.findTaskById(command.taskId);
+          const newTagIds = taskForTagRemoval.tagIds.filter(
+            (id) => id !== command.tagId
           );
-          if (taskForTagRemoval) {
-            const newTagIds = taskForTagRemoval.tagIds.filter(
-              (id) => id !== command.tagId
-            );
-            result = await PluginAPI.updateTask(command.taskId, {
-              tagIds: newTagIds,
-            });
-          } else {
-            result = { error: 'Task not found' };
-          }
+          result = await PluginAPI.updateTask(command.taskId, {
+            tagIds: newTagIds,
+          });
           break;
         }
 
