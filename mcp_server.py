@@ -136,6 +136,24 @@ class SuperProductivityMCPServer:
                     }
                 ),
                 types.Tool(
+                    name="add_time_spent",
+                    description="Add time to a task's logged time spent (additive - adds to whatever time is already logged, unlike update_task's time_spent which overwrites it).",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "task_id": {
+                                "type": "string",
+                                "description": "Task ID to log time against"
+                            },
+                            "time_ms": {
+                                "type": "integer",
+                                "description": "Time to add, in milliseconds"
+                            }
+                        },
+                        "required": ["task_id", "time_ms"]
+                    }
+                ),
+                types.Tool(
                     name="complete_and_archive_task",
                     description="Complete a task (mark as done) in Super Productivity - NOTE: True deletion is not supported",
                     inputSchema={
@@ -247,6 +265,8 @@ class SuperProductivityMCPServer:
                     result = await self.get_tasks(arguments)
                 elif name == "update_task":
                     result = await self.update_task(arguments)
+                elif name == "add_time_spent":
+                    result = await self.add_time_spent(arguments)
                 elif name == "complete_and_archive_task":
                     result = await self.complete_and_archive_task(arguments)
                 elif name == "get_projects":
@@ -379,7 +399,19 @@ class SuperProductivityMCPServer:
             updates["timeSpent"] = args["time_spent"]
         
         return await self.send_command("updateTask", taskId=task_id, data=updates)
-    
+
+    async def add_time_spent(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Add time to a task's existing timeSpent (additive)"""
+        task_id = args.get("task_id")
+        if not task_id:
+            return {"success": False, "error": "task_id is required"}
+
+        time_ms = args.get("time_ms")
+        if time_ms is None:
+            return {"success": False, "error": "time_ms is required"}
+
+        return await self.send_command("addTimeSpent", taskId=task_id, timeMs=time_ms)
+
     async def complete_and_archive_task(self, args: Dict[str, Any]) -> Dict[str, Any]:
         """Complete a task (mark as done) - true deletion is not supported"""
         task_id = args.get("task_id")

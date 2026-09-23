@@ -519,7 +519,7 @@ class MCPBridgePlugin {
           const tasks = await PluginAPI.getTasks();
           const task = tasks.find(t => t.id === command.taskId);
           if (task) {
-            const newTimeSpent = task.timeSpent + (command.timeMs || 0);
+            const newTimeSpent = (task.timeSpent || 0) + (command.timeMs || 0);
             result = await PluginAPI.updateTask(command.taskId, { timeSpent: newTimeSpent });
           } else {
             result = { error: 'Task not found' };
