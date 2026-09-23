@@ -1,9 +1,13 @@
 {
   "name": "SP-MCP",
-  "version": "1.0.0",
-  "description": "Super Productivity plugin half of the SP-MCP bridge (paired with mcp_server.py)",
+  "version": "1.2.0",
+  "description": "Personal fork of organicmoron/SP-MCP - the Super Productivity plugin half of the SP-MCP bridge (paired with mcp_server.py)",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipryseski/SP-MCP"
+  },
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
