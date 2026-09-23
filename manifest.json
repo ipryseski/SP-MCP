@@ -2,7 +2,7 @@
   "id": "sp-mcp-bridge",
   "name": "MCP Bridge",
   "description": "Personal fork of organicmoron/SP-MCP - bridge between Super Productivity and MCP (Model Context Protocol) servers for Claude Desktop integration",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "manifestVersion": 1,
   "author": "Diane Pryseski",
   "homepage": "https://github.com/ipryseski/SP-MCP",
@@ -15,6 +15,7 @@
   "isSkipMenuEntry": true,
   "hooks": ["taskUpdate", "taskComplete", "taskDelete", "currentTaskChange"],
   "changelog": {
+    "1.3.0": "Fix dashboard activity log never showing successful commands, the data-directory field, and the connection status badge getting stuck on 'Ready'",
     "1.2.0": "Note this is a personal fork of organicmoron/SP-MCP",
     "1.1.0": "Add additive add_time_spent command; fix a task-not-found handler bug, a doneOn timestamp bug, and an XSS risk in the dashboard log",
     "1.0.0": "Initial release with full MCP bridge functionality"
