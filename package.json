@@ -1,0 +1,22 @@
+{
+  "name": "SP-MCP",
+  "version": "1.0.0",
+  "description": "Super Productivity plugin half of the SP-MCP bridge (paired with mcp_server.py)",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "package": "bash scripts/package.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "prettier": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=18.18"
+  }
+}
