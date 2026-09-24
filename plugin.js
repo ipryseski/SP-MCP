@@ -709,6 +709,10 @@ class MCPBridgePlugin {
 
       const executionTime = Date.now() - startTime;
 
+      await this.log(
+        `Command succeeded: ${command.action} (${executionTime}ms)`
+      );
+
       // Write response back to MCP server
       await this.writeCommandResponse(command.id || filename, {
         success: true,
@@ -917,7 +921,10 @@ class MCPBridgePlugin {
   getStatus() {
     return {
       isInitialized: this.isInitialized,
-      mcpServerPath: this.mcpServerPath,
+      status: this.isInitialized
+        ? { type: 'connected', message: '✅ Connected and ready' }
+        : { type: 'disconnected', message: 'Not yet initialized' },
+      mcpPath: this.mcpServerPath,
       commandDir: this.config.mcpCommandDir,
       responseDir: this.config.mcpResponseDir,
       stats: this.stats,
