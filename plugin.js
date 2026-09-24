@@ -565,11 +565,24 @@ class MCPBridgePlugin {
 
         case 'addTimeToTask':
         case 'addTimeSpent': {
-          // Add time to the task's existing timeSpent (additive).
+          // Add time to today's entry in timeSpentOnDay (additive). SP derives
+          // timeSpent from this map and recomputes it on every timer tick, so
+          // writing timeSpent alone (as this used to) gets silently reverted -
+          // timeSpentOnDay is the actual source of truth.
           const task = await this.findTaskById(command.taskId);
-          const newTimeSpent = (task.timeSpent || 0) + (command.timeMs || 0);
+          const today = new Date();
+          const dateStr = [
+            today.getFullYear(),
+            String(today.getMonth() + 1).padStart(2, '0'),
+            String(today.getDate()).padStart(2, '0'),
+          ].join('-');
+          const newTimeSpentOnDay = {
+            ...task.timeSpentOnDay,
+            [dateStr]:
+              (task.timeSpentOnDay?.[dateStr] || 0) + (command.timeMs || 0),
+          };
           result = await PluginAPI.updateTask(command.taskId, {
-            timeSpent: newTimeSpent,
+            timeSpentOnDay: newTimeSpentOnDay,
           });
           break;
         }
