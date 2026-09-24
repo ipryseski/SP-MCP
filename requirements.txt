@@ -1,1 +1,6 @@
-mcp>=1.0.0
+# Pinned: 2.0.0 rewrote Server's API (no more list_tools()/call_tool()
+# decorators), which this repo's low-level server code isn't written against.
+# An unpinned install silently grabs the incompatible newest release and the
+# server crashes with AttributeError on the first request. 1.30.0 is the last
+# pre-rewrite release.
+mcp==1.30.0
