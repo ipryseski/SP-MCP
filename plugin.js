@@ -468,6 +468,18 @@ class MCPBridgePlugin {
     return task;
   }
 
+  // Shared by moveTaskToBacklog/moveTaskOutOfBacklog, which read-modify-write
+  // a project's taskIds/backlogTaskIds arrays. Same throw-on-missing rationale
+  // as findTaskById.
+  async findProjectById(projectId) {
+    const projects = await PluginAPI.getAllProjects();
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) {
+      throw new Error(`Project not found: ${projectId}`);
+    }
+    return project;
+  }
+
   async executeCommand(commandInfo) {
     const { command, filename, path: commandPath } = commandInfo;
 
@@ -598,6 +610,67 @@ class MCPBridgePlugin {
             projectId: command.projectId,
           });
           break;
+
+        case 'moveTaskToBacklog': {
+          // Move a top-level task from its project's regular (today/board)
+          // list into the backlog, by rewriting both id arrays on the
+          // project directly - there is no dedicated PluginAPI method for
+          // this, but updateProject writes taskIds/backlogTaskIds through
+          // unfiltered (unlike updateTask's field allowlist).
+          const task = await this.findTaskById(command.taskId);
+          if (task.parentId) {
+            throw new Error(
+              `Task ${command.taskId} is a subtask and has no backlog membership of its own`
+            );
+          }
+          if (!task.projectId) {
+            throw new Error(
+              `Task ${command.taskId} has no project, so it has no backlog`
+            );
+          }
+          const project = await this.findProjectById(task.projectId);
+          const taskIds = (project.taskIds || []).filter(
+            (id) => id !== command.taskId
+          );
+          const backlogTaskIds = (project.backlogTaskIds || []).includes(
+            command.taskId
+          )
+            ? project.backlogTaskIds
+            : [...(project.backlogTaskIds || []), command.taskId];
+          result = await PluginAPI.updateProject(task.projectId, {
+            taskIds,
+            backlogTaskIds,
+          });
+          break;
+        }
+
+        case 'moveTaskOutOfBacklog': {
+          // Inverse of moveTaskToBacklog: move a task out of the backlog and
+          // into the project's regular (today/board) list.
+          const task = await this.findTaskById(command.taskId);
+          if (task.parentId) {
+            throw new Error(
+              `Task ${command.taskId} is a subtask and has no backlog membership of its own`
+            );
+          }
+          if (!task.projectId) {
+            throw new Error(
+              `Task ${command.taskId} has no project, so it has no backlog`
+            );
+          }
+          const project = await this.findProjectById(task.projectId);
+          const backlogTaskIds = (project.backlogTaskIds || []).filter(
+            (id) => id !== command.taskId
+          );
+          const taskIds = (project.taskIds || []).includes(command.taskId)
+            ? project.taskIds
+            : [...(project.taskIds || []), command.taskId];
+          result = await PluginAPI.updateProject(task.projectId, {
+            taskIds,
+            backlogTaskIds,
+          });
+          break;
+        }
 
         case 'addTagToTask': {
           // Add tag to the task's existing tagIds.
