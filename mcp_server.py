@@ -156,6 +156,34 @@ class SuperProductivityMCPServer:
                     }
                 ),
                 types.Tool(
+                    name="move_task_to_backlog",
+                    description="Move a task out of its project's today/board list and into the backlog.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "task_id": {
+                                "type": "string",
+                                "description": "Task ID to move to the backlog"
+                            }
+                        },
+                        "required": ["task_id"]
+                    }
+                ),
+                types.Tool(
+                    name="move_task_out_of_backlog",
+                    description="Move a task out of its project's backlog and into the today/board list.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "task_id": {
+                                "type": "string",
+                                "description": "Task ID to move out of the backlog"
+                            }
+                        },
+                        "required": ["task_id"]
+                    }
+                ),
+                types.Tool(
                     name="complete_and_archive_task",
                     description="Complete a task (mark as done) in Super Productivity - NOTE: True deletion is not supported",
                     inputSchema={
@@ -269,6 +297,10 @@ class SuperProductivityMCPServer:
                     result = await self.update_task(arguments)
                 elif name == "add_time_spent":
                     result = await self.add_time_spent(arguments)
+                elif name == "move_task_to_backlog":
+                    result = await self.move_task_to_backlog(arguments)
+                elif name == "move_task_out_of_backlog":
+                    result = await self.move_task_out_of_backlog(arguments)
                 elif name == "complete_and_archive_task":
                     result = await self.complete_and_archive_task(arguments)
                 elif name == "get_projects":
@@ -416,6 +448,22 @@ class SuperProductivityMCPServer:
             return {"success": False, "error": "time_ms is required"}
 
         return await self.send_command("addTimeSpent", taskId=task_id, timeMs=time_ms)
+
+    async def move_task_to_backlog(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Move a task into its project's backlog"""
+        task_id = args.get("task_id")
+        if not task_id:
+            return {"success": False, "error": "task_id is required"}
+
+        return await self.send_command("moveTaskToBacklog", taskId=task_id)
+
+    async def move_task_out_of_backlog(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Move a task out of its project's backlog"""
+        task_id = args.get("task_id")
+        if not task_id:
+            return {"success": False, "error": "task_id is required"}
+
+        return await self.send_command("moveTaskOutOfBacklog", taskId=task_id)
 
     async def complete_and_archive_task(self, args: Dict[str, Any]) -> Dict[str, Any]:
         """Complete a task (mark as done) - true deletion is not supported"""
