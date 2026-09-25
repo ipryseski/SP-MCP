@@ -629,6 +629,16 @@ class MCPBridgePlugin {
             );
           }
           const project = await this.findProjectById(task.projectId);
+          if (!project.isEnableBacklog) {
+            // The backlog UI is hidden for this project (e.g. Inbox), so a
+            // task moved into backlogTaskIds isn't shown anywhere - not in
+            // the main list (removed from taskIds) and not in a backlog
+            // section (none rendered). Refuse rather than silently
+            // disappearing the task.
+            throw new Error(
+              `Project ${task.projectId} has its backlog disabled; moving task ${command.taskId} there would make it invisible in the SP UI`
+            );
+          }
           const taskIds = (project.taskIds || []).filter(
             (id) => id !== command.taskId
           );
